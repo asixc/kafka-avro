@@ -1,0 +1,52 @@
+{
+  "type" : "record",
+  "name" : "Employee",
+  "namespace" : "com.example",
+  "fields" : [ {
+    "name" : "id",
+    "type" : [ "null", {
+      "type" : "long",
+      "java-class" : "java.lang.Long"
+    } ]
+  }, {
+    "name" : "name",
+    "type" : [ "null", "string" ]
+  }, {
+    "name" : "birthdate",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "int"
+    } ]
+  }, {
+    "name" : "cars",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : {
+        "type" : "record",
+        "name" : "Car",
+        "fields" : [ {
+          "name" : "id",
+          "type" : [ "null", {
+            "type" : "long",
+            "java-class" : "java.lang.Long"
+          } ]
+        }, {
+          "name" : "name",
+          "type" : [ "null", "string" ]
+        }, {
+          "name" : "cost",
+          "type" : [ "null", {
+            "type" : "string",
+            "java-class" : "java.math.BigDecimal"
+          } ]
+        }, {
+          "name" : "dayPurchase",
+          "type" : [ "null", {
+            "type" : "array",
+            "items" : "int"
+          } ]
+        } ]
+      }
+    } ]
+  } ]
+}
