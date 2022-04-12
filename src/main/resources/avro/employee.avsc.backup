@@ -13,7 +13,10 @@
     "type" : [ "null", "string" ]
   }, {
     "name" : "birthdate",
-    "type" : [ "null", "string" ]
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "int"
+    } ]
   }, {
     "name" : "cars",
     "type" : [ "null", {
