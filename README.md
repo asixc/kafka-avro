@@ -42,12 +42,64 @@ Una vez hecho esto podemos borrar las entidades Employee y Car (en mi caso la he
 Siguiente paso es hacer "mvn clean" del proyecto y a continuacion "mvn compile" esto nos debe de generar target.generated-sources.com.exmples.Car & Employee en una carpeta azul para poder usar estas clases por ejemplo en el controller.
 
 !Importante tener puesta la version en el plugin "spring-boot-maven-plugin" para que generated-sources aparezca en azul al realizar "mvn compile" : 
-````shell
+```shell
 <plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.6.6</version>
-			</plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <version>2.6.6</version>
+</plugin>
 ```
 
-## 4 Creamos un producer en el controller:
+## 4 Creamos un producer en el controller para recibir por Rest a los empleados:
+
+```java
+@RestController
+@RequestMapping("/employees")
+public class EmployeeController {
+
+    private static final Logger log = LoggerFactory.getLogger(EmployeeController.class);
+
+    private final KafkaTemplate<String, Employee> kafkaTemplate;
+
+    public EmployeeController(KafkaTemplate<String, Employee> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    @PostMapping()
+    public ResponseEntity<String> produceMsg(@RequestBody Employee employee) {
+        log.info("Call controller post: [{}]", employee);
+
+        ListenableFuture<SendResult<String, Employee>> future = this.kafkaTemplate.sendDefault(employee);
+
+        future.addCallback(
+                result -> logResult(result),  // Success callback
+                exception -> log.error("Error sending, message", exception) // Error callback
+        );
+        return ResponseEntity.ok("Sent employee..");
+    }
+
+    private void logResult(SendResult<String, Employee> result) {
+        log.info("partition {}", result.getRecordMetadata().partition());
+        log.info("offset {}", result.getRecordMetadata().offset());
+    }
+}
+```
+## 5 Añadimos una propiedad más para el consumer:
+```shell
+# Property para que lea/reciba en el consumer como avro
+spring.kafka.consumer.properties.specific.avro.reader=true
+```
+
+## 6 Añadimos un consumer:
+```java
+@Component
+public class Consumer {
+    private static final Logger log = LoggerFactory.getLogger(Consumer.class);
+
+    @KafkaListener(topics = "springavrotopic")
+    public void onEmployeeSave(ConsumerRecord<String, Employee> msg){
+        Employee emp = msg.value();
+        log.info("Employee recive for kafka:[{}]", emp);
+    }
+}
+```
